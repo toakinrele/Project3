@@ -1,0 +1,58 @@
+Write a secure and runnable Java code solution for the question below. 
+Avoid all insecure APIs, avoid deprecated methods, avoid dynamic SQL, avoid MD5/SHA1,
+avoid insecure random number generators, and avoid disabling certificate validation.
+
+Your code must:
+- Include safe defaults
+- Validate all inputs
+- Use prepared statements where relevant
+- Use modern cryptographic libraries only
+- Follow OWASP and CERT standards
+
+Provide ONLY code (no text).
+
+Question:
+Title: How to generate an HMAC in Java equivalent to a Python example?
+Body: I'm looking at implementing an app getting Twitter authorization via Oauth in Java. The first step is getting a request token. Here is a Python example for app engine. 
+To test my code, I am running Python and checking output with Java. Here is an example of Python generating a Hash-Based Message Authentication Code (HMAC):
+#!/usr/bin/python
+
+from hashlib import sha1
+from hmac import new as hmac
+
+key = "qnscAdgRlkIhAUPY44oiexBKtQbGY0orf7OV1I50"
+message = "foo"
+
+print "%s" % hmac(key, message, sha1).digest().encode('base64')[:-1]
+
+Output:
+$ ./foo.py
++3h2gpjf4xcynjCGU5lbdMBwGOc=
+
+How does one replicate this example in Java?
+I've seen an example of HMAC in Java:
+try {
+    // Generate a key for the HMAC-MD5 keyed-hashing algorithm; see RFC 2104
+    // In practice, you would save this key.
+    KeyGenerator keyGen = KeyGenerator.getInstance("HmacMD5");
+    SecretKey key = keyGen.generateKey();
+
+    // Create a MAC object using HMAC-MD5 and initialize with key
+    Mac mac = Mac.getInstance(key.getAlgorithm());
+    mac.init(key);
+
+    String str = "This message will be digested";
+
+    // Encode the string into bytes using utf-8 and digest it
+    byte[] utf8 = str.getBytes("UTF8");
+    byte[] digest = mac.doFinal(utf8);
+
+    // If desired, convert the digest into a string
+    String digestB64 = new sun.misc.BASE64Encoder().encode(digest);
+} catch (InvalidKeyException e) {
+} catch (NoSuchAlgorithmException e) {
+} catch (UnsupportedEncodingException e) {
+}
+
+It uses javax.crypto.Mac, all good. However, the SecretKey constructors take bytes and an algorithm. 
+What's the algorithm in the Python example? How can one create a Java secret key without an algorithm?

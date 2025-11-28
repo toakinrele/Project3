@@ -1,0 +1,123 @@
+Write a secure and runnable Java code solution for the question below. 
+Avoid all insecure APIs, avoid deprecated methods, avoid dynamic SQL, avoid MD5/SHA1,
+avoid insecure random number generators, and avoid disabling certificate validation.
+
+Your code must:
+- Include safe defaults
+- Validate all inputs
+- Use prepared statements where relevant
+- Use modern cryptographic libraries only
+- Follow OWASP and CERT standards
+
+Provide ONLY code (no text).
+
+Question:
+Title: AES decryption gives wrong results
+Body: I'm trying to encrypt a string in Android app and then decrypt it in ASP.Net server. I'm not getting any errors but decryption doesn't return true results. Here is Android side:
+public void clckBtn(View v) {
+        try {
+            SecretKeySpec skeySpec = new SecretKeySpec(
+                    "MyDifficultPassw".getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+            byte[] encrypted = cipher.doFinal("tryToEncrypt".getBytes());
+            System.out.println(toHex(encrypted));
+
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+
+    }
+
+
+    public static String toHex(byte[] buf) {
+        if (buf == null)
+            return "";
+        StringBuffer result = new StringBuffer(2 * buf.length);
+        for (int i = 0; i < buf.length; i++) {
+            appendHex(result, buf[i]);
+        }
+        return result.toString();
+    }
+
+    private final static String HEX = "0123456789ABCDEF";
+
+    private static void appendHex(StringBuffer sb, byte b) {
+        sb.append(HEX.charAt((b >> 4) & 0x0f)).append(HEX.charAt(b & 0x0f));
+    }
+
+The output is: CE3E99F50E6D30201E38D4955F07BA7C
+Asp.Net side :
+ protected void Page_Load(object sender, EventArgs e)
+        {
+            using (Aes myAes = Aes.Create())
+            {
+                string asd = DecryptStringFromBytes_Aes(GetBytes("CE3E99F50E6D30201E38D4955F07BA7C"), GetBytes("MyDifficultPassw"), myAes.IV);
+                int we = 0;
+            }
+
+        }
+
+        static string DecryptStringFromBytes_Aes(byte[] cipherText, byte[] Key
+, byte[] IV)
+        {
+            // Check arguments. 
+            if (cipherText == null || cipherText.Length <= 0)
+                throw new ArgumentNullException("cipherText");
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException("Key");
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException("Key");
+
+            // Declare the string used to hold 
+            // the decrypted text. 
+            string plaintext = null;
+
+            // Create an Aes object 
+            // with the specified key and IV. 
+            using (Aes aesAlg = Aes.Create())
+            {
+                aesAlg.Key = Key;
+                aesAlg.IV = IV;
+                aesAlg.Padding = PaddingMode.None;
+
+                // Create a decrytor to perform the stream transform.
+                ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key
+, aesAlg.IV);
+
+
+
+                // Create the streams used for decryption. 
+                using (MemoryStream msDecrypt = new MemoryStream(cipherText))
+                {
+
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt
+, decryptor, CryptoStreamMode.Read))
+                    {
+
+                        using (StreamReader srDecrypt = new StreamReader(
+csDecrypt))
+                        {
+
+                            // Read the decrypted bytes from the decrypting 
+
+                            // and place them in a string.
+                            plaintext = srDecrypt.ReadToEnd();
+                        }
+                    }
+                }
+
+            }
+
+            return plaintext;
+
+        }
+
+        static byte[] GetBytes(string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+In Asp.Net Aes class requires a IV (initialization vector). In Android there is no such thing. I think the problem is something about that.

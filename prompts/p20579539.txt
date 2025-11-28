@@ -1,0 +1,248 @@
+Write a secure and runnable Java code solution for the question below. 
+Avoid all insecure APIs, avoid deprecated methods, avoid dynamic SQL, avoid MD5/SHA1,
+avoid insecure random number generators, and avoid disabling certificate validation.
+
+Your code must:
+- Include safe defaults
+- Validate all inputs
+- Use prepared statements where relevant
+- Use modern cryptographic libraries only
+- Follow OWASP and CERT standards
+
+Provide ONLY code (no text).
+
+Question:
+Title: no email send android
+Body: I want when I click on button an email will be send automatically to the user.
+I followed this : Sending Email in Android using JavaMail API without using the default/built-in app android-using-javamail-api-without-using-the-default-built-in-a
+and here is my code : https://stackoverflow.com/questions/20570957/sending-email-without-user-notice
+No crashes or errors, but no email was sent!
+Can someone please solve it for me ?
+thank you 
+GmailSender class:
+package com.example.tesst;
+
+import javax.activation.DataHandler;   
+import javax.activation.DataSource;   
+import javax.activation.FileDataSource;
+import javax.mail.BodyPart;
+import javax.mail.Message;   
+import javax.mail.PasswordAuthentication;   
+import javax.mail.Session;   
+import javax.mail.Transport;   
+import javax.mail.internet.InternetAddress;   
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;   
+import javax.mail.internet.MimeMultipart;
+
+import android.util.Log;
+
+import java.io.ByteArrayInputStream;   
+import java.io.IOException;   
+import java.io.InputStream;   
+import java.io.OutputStream;   
+import java.security.Security;   
+import java.util.Properties;   
+
+public class GmailSender extends javax.mail.Authenticator {   
+private String mailhost = "smtp.gmail.com",imagePath;   
+private String user;   
+private String password;   
+private Session session;   
+
+static 
+{   
+    Security.addProvider(new com.example.tesst.JSSEProvider());   
+}  
+
+public GmailSender(String user, String password,String imagePath) {   
+    this.user = user;   
+    this.password = password;   
+    this.imagePath=imagePath;
+    Properties props = new Properties();   
+    props.setProperty("mail.transport.protocol", "smtp");   
+    props.setProperty("mail.host", mailhost);   
+    props.put("mail.smtp.auth", "true");   
+
+
+    props.put("mail.smtp.port", "465");   
+    props.put("mail.smtp.socketFactory.port", "465");   
+    props.put("mail.smtp.socketFactory.class",   
+            "javax.net.ssl.SSLSocketFactory");   
+    props.put("mail.smtp.socketFactory.fallback", "false");   
+    props.setProperty("mail.smtp.quitwait", "false");   
+
+    session = Session.getDefaultInstance(props, this);   
+}   
+
+protected PasswordAuthentication getPasswordAuthentication() {   
+    return new PasswordAuthentication(user, password);   
+}   
+
+public synchronized void sendMail(String subject, String body, String sender, String recipients) throws Exception {   
+    try{
+
+
+         Transport transport = session.getTransport();  
+
+         MimeMessage message = new MimeMessage(session);  
+         message.setSubject(subject);  
+         message.setFrom(new InternetAddress(sender));  
+         message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipients));  
+
+         //  
+         // This HTML mail have to 2 part, the BODY and the embedded image  
+         //  
+         MimeMultipart multipart = new MimeMultipart("related");  
+
+         // first part  (the html)  
+         BodyPart messageBodyPart = new MimeBodyPart();  
+         String htmlText = "<H1>"+body+"</H1>";  
+         messageBodyPart.setContent(htmlText, "text/html");  
+
+         // add it  
+         multipart.addBodyPart(messageBodyPart);  
+
+         // second part (the image)  
+      //   messageBodyPart = new MimeBodyPart();  
+     //    DataSource fds = new FileDataSource(imagePath);  
+     //    messageBodyPart.setDataHandler(new DataHandler(fds));  
+     //    messageBodyPart.setHeader("Content-ID",imagePath);  
+
+         // add it  
+       //  multipart.addBodyPart(messageBodyPart);  
+
+         // put everything together  
+         message.setContent(multipart);  
+
+         transport.connect();  
+         transport.sendMessage(message,message.getRecipients(Message.RecipientType.TO));  
+         transport.close();  
+    }catch(Exception e){
+        Log.e("", "FILE NOT FOUND EXCEPTION "+e.getMessage());
+    }
+}   
+
+public class ByteArrayDataSource implements DataSource {   
+    private byte[] data;   
+    private String type;   
+
+    public ByteArrayDataSource(byte[] data, String type) {   
+        super();   
+        this.data = data;   
+        this.type = type;   
+    }   
+
+    public ByteArrayDataSource(byte[] data) {   
+        super();   
+        this.data = data;   
+    }   
+
+    public void setType(String type) {   
+        this.type = type;   
+    }   
+
+    public String getContentType() {   
+        if (type == null)   
+            return "application/octet-stream";   
+        else  
+            return type;   
+    }   
+
+    public InputStream getInputStream() throws IOException {   
+        return new ByteArrayInputStream(data);   
+    }   
+
+    public String getName() {   
+        return "ByteArrayDataSource";   
+    }   
+
+    public OutputStream getOutputStream() throws IOException {   
+        throw new IOException("Not Supported");   
+    }   
+}   
+}  
+
+JSSEProvider  class 
+   package com.example.tesst;
+
+
+   import java.security.AccessController;
+
+   import java.security.Provider;
+
+
+   public final class JSSEProvider extends Provider {
+
+public JSSEProvider() {
+    super("HarmonyJSSE", 1.0, "Harmony JSSE Provider");
+    AccessController.doPrivileged(new java.security.PrivilegedAction<Void>() {
+        public Void run() {
+            put("SSLContext.TLS",
+                    "org.apache.harmony.xnet.provider.jsse.SSLContextImpl");
+            put("Alg.Alias.SSLContext.TLSv1", "TLS");
+            put("KeyManagerFactory.X509",
+                    "org.apache.harmony.xnet.provider.jsse.KeyManagerFactoryImpl");
+            put("TrustManagerFactory.X509",
+                    "org.apache.harmony.xnet.provider.jsse.TrustManagerFactoryImpl");
+            return null;
+        }
+    });
+}
+
+
+   }
+
+MainActivity  class
+ package com.example.tesst;
+
+
+ import android.os.Bundle;
+
+ import android.app.Activity;
+
+ import android.util.Log;
+
+ import android.view.Menu;
+
+ import android.view.View;
+
+ import android.widget.Button;
+
+
+ public class MainActivity extends Activity {
+
+
+public Button send;
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    send=(Button) findViewById(R.id.send);
+    send.setOnClickListener(new View.OnClickListener() {
+
+        @Override
+        public void onClick(View arg0) {
+            // TODO Auto-generated method stub
+            try {   
+                   GmailSender sender = new GmailSender("mobilibksu@gmail.com", "12345","");
+                   sender.sendMail("test","bla bla blaaaa","lamachanz@gmail.com","lamachanz@gmail.com");   
+                } 
+             catch (Exception e) 
+               {   
+                   Log.e("SendMail", e.getMessage(), e);   
+               }
+        }
+    });
+}
+
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    // Inflate the menu; this adds items to the action bar if it is present.
+    getMenuInflater().inflate(R.menu.main, menu);
+    return true;
+}
+
+
+ }

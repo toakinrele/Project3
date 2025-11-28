@@ -1,0 +1,178 @@
+Write a secure and runnable Java code solution for the question below. 
+Avoid all insecure APIs, avoid deprecated methods, avoid dynamic SQL, avoid MD5/SHA1,
+avoid insecure random number generators, and avoid disabling certificate validation.
+
+Your code must:
+- Include safe defaults
+- Validate all inputs
+- Use prepared statements where relevant
+- Use modern cryptographic libraries only
+- Follow OWASP and CERT standards
+
+Provide ONLY code (no text).
+
+Question:
+Title: how to achieve transfer file between client and server using java socket
+Body: I have implement the simple TCP server and TCP client classes which can send the message from client to server and the message will be converted to upper case on the server side, but how can I achieve transfer files from server to client and upload files from client to server. the following codes are what I have got.
+TCPClient.java   
+        import java.io.*;
+        import java.net.*;
+        import java.util.Scanner;
+
+ class TCPClient {
+
+public static void main(String args[]) throws Exception {
+        int filesize=6022386;
+        int bytesRead;
+        int current = 0;
+    String ipAdd="";
+    int portNum=0;
+    boolean goes=false;
+    if(goes==false){
+    System.out.println("please input the ip address of the file server");
+    Scanner scan=new Scanner(System.in);
+    ipAdd=scan.nextLine();
+    System.out.println("please input the port number of the file server");
+    Scanner scan1=new Scanner(System.in);
+    portNum=scan1.nextInt();
+    goes=true;
+    }
+    System.out.println("input done");
+    int timeCount=1;
+    while(goes==true){
+    //System.out.println("connection establishing");
+
+    String sentence="";
+    String modifiedSentence;
+
+    BufferedReader inFromUser = new BufferedReader(new InputStreamReader(
+            System.in));
+
+    Socket clientSocket = new Socket(ipAdd, portNum);
+    //System.out.println("connecting");
+    //System.out.println(timeCount);
+    if(timeCount==1){
+    sentence="set";
+    //System.out.println(sentence);
+
+
+    }
+    if(timeCount!=1)
+        sentence = inFromUser.readLine();
+            if(sentence.equals("close"))
+                clientSocket.close();
+            if(sentence.equals("download"))
+            {
+                byte [] mybytearray  = new byte [filesize];
+                InputStream is = clientSocket.getInputStream();
+                FileOutputStream fos = new FileOutputStream("C:\\users\\cguo\\kk.lsp");
+                BufferedOutputStream bos = new BufferedOutputStream(fos);
+                bytesRead = is.read(mybytearray,0,mybytearray.length);
+                current = bytesRead;
+                do {
+   bytesRead =
+      is.read(mybytearray, current, (mybytearray.length-current));
+   if(bytesRead >= 0) current += bytesRead;
+} while(bytesRead > -1);
+
+bos.write(mybytearray, 0 , current);
+bos.flush();
+long end = System.currentTimeMillis();
+//System.out.println(end-start);
+bos.close();
+clientSocket.close();
+            }
+           // if(sentence.equals("send"))
+               // clientSocket.
+    timeCount--;
+    //System.out.println("connecting1");
+    DataOutputStream outToServer = new DataOutputStream(clientSocket
+            .getOutputStream());
+
+    BufferedReader inFromServer = new BufferedReader(new InputStreamReader(
+            clientSocket.getInputStream()));
+
+
+    //System.out.println("connecting2");
+    //System.out.println(sentence);
+    outToServer.writeBytes(sentence + "\n");
+
+    modifiedSentence = inFromServer.readLine();
+
+    System.out.println("FROM SERVER:" + modifiedSentence);
+
+    clientSocket.close();
+
+}
+}
+
+}
+
+TCPServer.java
+          import java.io.*;
+       import java.net.*;
+
+     class TCPServer {
+public static void main(String args[]) throws Exception {
+
+    Socket s = null;
+
+    int firsttime=1;
+
+
+    while (true) {
+        String clientSentence;
+    String capitalizedSentence="";
+
+        ServerSocket welcomeSocket = new ServerSocket(3248);
+        Socket connectionSocket = welcomeSocket.accept();
+
+             //Socket sock = welcomeSocket.accept();
+
+
+        BufferedReader inFromClient = new BufferedReader(
+                new InputStreamReader(connectionSocket.getInputStream()));
+
+        DataOutputStream outToClient = new DataOutputStream(
+                connectionSocket.getOutputStream());
+
+        clientSentence = inFromClient.readLine();
+        //System.out.println(clientSentence);
+                    if(clientSentence.equals("download"))
+                    {
+                         File myFile = new File ("C:\\Users\\cguo\\11.lsp");
+  byte [] mybytearray  = new byte [(int)myFile.length()];
+  FileInputStream fis = new FileInputStream(myFile);
+  BufferedInputStream bis = new BufferedInputStream(fis);
+  bis.read(mybytearray,0,mybytearray.length);
+  OutputStream os = connectionSocket.getOutputStream();
+  System.out.println("Sending...");
+  os.write(mybytearray,0,mybytearray.length);
+  os.flush();
+  connectionSocket.close();
+                    }
+        if(clientSentence.equals("set"))
+            {outToClient.writeBytes("connection is ");
+            System.out.println("running here");
+            //welcomeSocket.close();
+             //outToClient.writeBytes(capitalizedSentence);
+            }
+
+
+
+        capitalizedSentence = clientSentence.toUpperCase() + "\n";
+
+
+    //if(!clientSentence.equals("quit"))
+           outToClient.writeBytes(capitalizedSentence+"enter the message or command: ");
+
+
+        System.out.println("passed");
+        //outToClient.writeBytes("enter the message or command: ");
+        welcomeSocket.close();
+    System.out.println("connection terminated");
+    }
+}
+
+}
+So, the TCPServer.java will be executed first, and then execute the TCPClient.java, and I try to use the if clause in the TCPServer.java to test what is user's input,now I really want to implement how to transfer files from both side(download and upload).Thanks.
